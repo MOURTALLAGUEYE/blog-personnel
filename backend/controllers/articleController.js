@@ -174,10 +174,10 @@ module.exports = {
   createArticle,
   updateArticle,
   deleteArticle,
-  // Aliases pour compatibilité avec le routes/index.js d'Abdou
-  getAll  : getDashboardArticles,
-  getOne  : getArticleById,
-  create  : createArticle,
-  update  : updateArticle,
-  remove  : deleteArticle,
+  // Aliases pour Abdou
+  getAll : getDashboardArticles,
+  getOne : getArticleById,
+  create : createArticle,
+  update : updateArticle,
+  remove : deleteArticle,
 }

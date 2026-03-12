@@ -60,7 +60,7 @@ export default function Login() {
                 </div>
 
                 <button type="submit" className="btn btn-primary w-100">
-                  Se connecter
+                  Connect
                 </button>
               </form>
 
