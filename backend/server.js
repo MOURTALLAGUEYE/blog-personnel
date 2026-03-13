@@ -11,3 +11,6 @@ app.use('/api', routes)
 app.listen(process.env.PORT || 5000, () => {
   console.log('Serveur démarré sur http://localhost:5000')
 })
+app.get("/", (req, res) => {
+  res.send("API Blog fonctionne 🚀");
+});
