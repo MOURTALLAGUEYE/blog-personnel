@@ -173,5 +173,11 @@ module.exports = {
   getArticleById,
   createArticle,
   updateArticle,
-  deleteArticle
+  deleteArticle,
+  // Aliases pour Abdou
+  getAll : getDashboardArticles,
+  getOne : getArticleById,
+  create : createArticle,
+  update : updateArticle,
+  remove : deleteArticle,
 }
