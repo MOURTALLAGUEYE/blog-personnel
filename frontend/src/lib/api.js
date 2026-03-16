@@ -29,8 +29,8 @@ api.interceptors.response.use(
 )
 
 // ─── AUTH ────────────────────────────────────────────────────────────────────
-export const register = async (nom_complet, username, password) => {
-  const res = await api.post('/auth/register', { nom_complet, username, password })
+export const register = async (form) => {
+  const res = await api.post('/auth/register', form)
   return res.data
 }
 
