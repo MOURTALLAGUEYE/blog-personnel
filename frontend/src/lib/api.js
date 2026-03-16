@@ -1,4 +1,4 @@
-import axios from 'axios'
+ import axios from 'axios'
 
 // ─── INSTANCE AXIOS ──────────────────────────────────────────────────────────
 const api = axios.create({
@@ -34,9 +34,9 @@ export const register = async (form) => {
   return res.data
 }
 
-export const login = async (username, password) => {
-  const res = await api.post('/auth/login', { username, password })
-  return res.data // { token, user }
+export const login = async (form) => {
+  const res = await api.post('/auth/login', form)
+  return res.data
 }
 
 // ─── ARTICLES ────────────────────────────────────────────────────────────────
