@@ -16,8 +16,8 @@ export default function DetailArticle() {
     const fetch = async () => {
       try {
         const res = await api.getArticle(id)
-        setArticle(res.data.article)
-        setComments(res.data.comments)
+        setArticle(res.article)    // ← corrigé
+        setComments(res.comments)  // ← corrigé
       } catch (err) {
         setErreur('Article introuvable ou accès refusé')
       }
@@ -57,13 +57,13 @@ export default function DetailArticle() {
           <h2>{article.titre}</h2>
           <p className="text-muted">
             Par <strong>{article.nom_complet}</strong> —{' '}
-            {new Date(article.created_at).toLocaleDateString()}
+            {new Date(article.cree_a).toLocaleDateString()}
           </p>
           <hr />
           <p style={{ whiteSpace: 'pre-wrap' }}>{article.contenu}</p>
 
           {/* Boutons auteur */}
-          {user?.id === article.user_id && (
+          {user?.id === article.utilisateur_id && (
             <div className="d-flex gap-2 mt-3">
               <Link to={`/articles/edit/${article.id}`} className="btn btn-warning btn-sm">
                 Modifier

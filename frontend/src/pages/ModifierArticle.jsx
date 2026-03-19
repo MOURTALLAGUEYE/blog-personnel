@@ -13,7 +13,7 @@ export default function ModifierArticle() {
     const fetch = async () => {
       try {
         const res = await api.getArticle(id)
-        const a   = res.data.article
+        const a   = res.article   // ← corrigé : res.article au lieu de res.data.article
         setInitialData({
           titre             : a.titre,
           contenu           : a.contenu,
