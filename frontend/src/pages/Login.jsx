@@ -15,7 +15,7 @@ export default function Login() {
     setErreur('')
     try {
       const res = await api.login({ username, password })
-      login(res.data.user, res.data.token)
+      login(res.user, res.token)
       navigate('/dashboard')
     } catch (err) {
       setErreur(err.response?.data?.message || 'Erreur de connexion')

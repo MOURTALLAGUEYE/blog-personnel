@@ -15,6 +15,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErreur('')
+    setSucces('')
     try {
       await api.register(form)
       setSucces('Inscription réussie ! Connectez-vous.')
@@ -32,8 +33,8 @@ export default function Register() {
             <div className="card-body p-4">
               <h2 className="card-title text-center mb-4">Inscription</h2>
 
-              {erreur  && <div className="alert alert-danger">{erreur}</div>}
-              {succes  && <div className="alert alert-success">{succes}</div>}
+              {erreur && <div className="alert alert-danger">{erreur}</div>}
+              {succes && <div className="alert alert-success">{succes}</div>}
 
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -81,7 +82,8 @@ export default function Register() {
               </form>
 
               <p className="text-center mt-3">
-                Déjà un compte ? <Link to="/">Connect</Link>
+                Déjà un compte ?{' '}
+                <Link to="/">Connect</Link>
               </p>
             </div>
           </div>
