@@ -12,7 +12,7 @@ export default function CommentSection({ articleId, comments, setComments }) {
     setErreur('')
     try {
       const res = await api.addComment(articleId, { contenu })
-      setComments([...comments, res.data.comment])
+      setComments([...comments, res.comment])
       setContenu('')
     } catch (err) {
       setErreur(err.response?.data?.message || 'Erreur')
@@ -43,11 +43,11 @@ export default function CommentSection({ articleId, comments, setComments }) {
             <div className="d-flex justify-content-between">
               <strong>{comment.nom_complet}</strong>
               <small className="text-muted">
-                {new Date(comment.created_at).toLocaleDateString()}
+                {new Date(comment.cree_a).toLocaleDateString()}
               </small>
             </div>
             <p className="mb-1">{comment.contenu}</p>
-            {user?.id === comment.user_id && (
+            {user?.id === comment.utilisateur_id && (
               <button
                 onClick={() => handleDelete(comment.id)}
                 className="btn btn-outline-danger btn-sm"

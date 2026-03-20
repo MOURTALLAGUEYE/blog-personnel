@@ -4,17 +4,17 @@ import { useAuth } from './context/AuthContext'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'        // ← ajouté
+import Amis from './pages/Amis'
 import NouvelArticle from './pages/NouvelArticle'
 import DetailArticle from './pages/DetailArticle'
 import ModifierArticle from './pages/ModifierArticle'
 
-// ── Route protégée ────────────────────────────────────
 function PrivateRoute({ children }) {
   const { token } = useAuth()
   return token ? children : <Navigate to="/" />
 }
 
-// ── App principale ────────────────────────────────────
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -24,6 +24,12 @@ function AppRoutes() {
         <Route path="/register" element={<Register />} />
 
         {/* Routes protégées */}
+        <Route path="/dashboard" element={
+          <PrivateRoute><Dashboard /></PrivateRoute>
+        } />
+        <Route path="/amis" element={
+          <PrivateRoute><Amis /></PrivateRoute>
+        } />
         <Route path="/articles/new" element={
           <PrivateRoute><NouvelArticle /></PrivateRoute>
         } />
