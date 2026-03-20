@@ -29,11 +29,7 @@ export default function Login() {
           <div className="card shadow">
             <div className="card-body p-4">
               <h2 className="card-title text-center mb-4">Connexion</h2>
-
-              {erreur && (
-                <div className="alert alert-danger">{erreur}</div>
-              )}
-
+              {erreur && <div className="alert alert-danger">{erreur}</div>}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label className="form-label">Nom d'utilisateur</label>
@@ -46,7 +42,6 @@ export default function Login() {
                     required
                   />
                 </div>
-
                 <div className="mb-3">
                   <label className="form-label">Mot de passe</label>
                   <input
@@ -58,12 +53,10 @@ export default function Login() {
                     required
                   />
                 </div>
-
                 <button type="submit" className="btn btn-primary w-100">
                   Connect
                 </button>
               </form>
-
               <p className="text-center mt-3">
                 Pas encore de compte ?{' '}
                 <Link to="/register">S'inscrire</Link>

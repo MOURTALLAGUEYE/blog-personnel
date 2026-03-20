@@ -4,20 +4,20 @@ import { useAuth } from '../context/AuthContext'
 import { getArticles, deleteArticle } from '../lib/api'
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [articles, setArticles] = useState([])
-  const [erreur, setErreur]     = useState('')
-  const [chargement, setChargement] = useState(true)
+  const { user, logout }   = useAuth()
+  const navigate           = useNavigate()
+  const [mesArticles,    setMesArticles]    = useState([])
+  const [articlesAmis,   setArticlesAmis]   = useState([])
+  const [erreur,         setErreur]         = useState('')
+  const [chargement,     setChargement]     = useState(true)
 
-  useEffect(() => {
-    chargerArticles()
-  }, [])
+  useEffect(() => { chargerArticles() }, [])
 
   const chargerArticles = async () => {
     try {
       const data = await getArticles()
-      setArticles(data)
+      setMesArticles(data.mesArticles   || [])
+      setArticlesAmis(data.articlesAmis || [])
     } catch (err) {
       setErreur('Erreur lors du chargement des articles')
     } finally {
@@ -29,23 +29,16 @@ export default function Dashboard() {
     if (!window.confirm('Supprimer cet article ?')) return
     try {
       await deleteArticle(id)
-      setArticles(articles.filter(a => a.id !== id))
+      setMesArticles(mesArticles.filter(a => a.id !== id))
     } catch (err) {
       setErreur('Erreur lors de la suppression')
     }
   }
 
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
-
-  const mesArticles    = articles.filter(a => a.user_id === user?.id)
-  const articlesAmis   = articles.filter(a => a.user_id !== user?.id)
+  const handleLogout = () => { logout(); navigate('/') }
 
   return (
     <div>
-      {/* NAVBAR */}
       <nav className="navbar navbar-dark bg-dark px-4">
         <span className="navbar-brand fw-bold">📝 Blog Personnel</span>
         <div className="d-flex gap-2 align-items-center">
@@ -67,7 +60,7 @@ export default function Dashboard() {
 
         {chargement ? (
           <div className="text-center mt-5">
-            <div className="spinner-border text-primary" role="status" />
+            <div className="spinner-border text-primary" role="status"/>
             <p className="mt-2">Chargement...</p>
           </div>
         ) : (
@@ -97,7 +90,7 @@ export default function Dashboard() {
                               {article.est_public ? '🌍 Public' : '🔒 Privé'}
                             </span>
                             <span className={`badge ${article.commentaires_actifs ? 'bg-primary' : 'bg-warning text-dark'}`}>
-                              {article.commentaires_actifs ? '💬 Commentaires ON' : '🔇 Commentaires OFF'}
+                              {article.commentaires_actifs ? '💬 ON' : '🔇 OFF'}
                             </span>
                           </div>
                           <h6 className="card-title">{article.titre}</h6>
@@ -106,13 +99,11 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <div className="card-footer d-flex gap-2">
-                          <Link
-                            to={`/articles/${article.id}`}
+                          <Link to={`/articles/${article.id}`}
                             className="btn btn-sm btn-outline-primary flex-fill">
                             👁️ Voir
                           </Link>
-                          <Link
-                            to={`/articles/edit/${article.id}`}
+                          <Link to={`/articles/edit/${article.id}`}
                             className="btn btn-sm btn-outline-secondary flex-fill">
                             ✏️ Modifier
                           </Link>
@@ -129,7 +120,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* ARTICLES DES AMIS */}
+            {/* ARTICLES AMIS */}
             <div>
               <h4 className="fw-bold mb-3">👥 Articles de mes Amis ({articlesAmis.length})</h4>
 
@@ -145,7 +136,7 @@ export default function Dashboard() {
                       <div className="card h-100 shadow-sm border-start border-primary border-3">
                         <div className="card-body">
                           <p className="text-muted small mb-1">
-                            👤 @{article.username || 'ami'}
+                            👤 @{article.username}
                           </p>
                           <h6 className="card-title">{article.titre}</h6>
                           <p className="card-text text-muted small">
@@ -153,8 +144,7 @@ export default function Dashboard() {
                           </p>
                         </div>
                         <div className="card-footer">
-                          <Link
-                            to={`/articles/${article.id}`}
+                          <Link to={`/articles/${article.id}`}
                             className="btn btn-sm btn-outline-primary w-100">
                             👁️ Voir l'article
                           </Link>

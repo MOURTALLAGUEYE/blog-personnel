@@ -4,6 +4,7 @@ const api = axios.create({
   baseURL: 'http://localhost:5000/api'
 })
 
+// Injecte le token JWT automatiquement
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -12,18 +13,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/'
-    }
-    return Promise.reject(error)
-  }
-)
-
+// ─── AUTH ─────────────────────────────────────────────
 export const register = async (form) => {
   const res = await api.post('/auth/register', form)
   return res.data
@@ -34,6 +24,7 @@ export const login = async (form) => {
   return res.data
 }
 
+// ─── ARTICLES ─────────────────────────────────────────
 export const getArticles = async () => {
   const res = await api.get('/articles')
   return res.data
@@ -59,6 +50,7 @@ export const deleteArticle = async (id) => {
   return res.data
 }
 
+// ─── COMMENTAIRES ─────────────────────────────────────
 export const addComment = async (articleId, contenu) => {
   const res = await api.post(`/articles/${articleId}/comments`, { contenu })
   return res.data
@@ -69,6 +61,7 @@ export const deleteComment = async (commentId) => {
   return res.data
 }
 
+// ─── AMIS ─────────────────────────────────────────────
 export const searchUsers = async (username) => {
   const res = await api.get(`/users/search?username=${encodeURIComponent(username)}`)
   return res.data
