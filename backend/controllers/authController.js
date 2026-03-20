@@ -1,7 +1,6 @@
-
 const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-const db = require('../config/db')
+const jwt    = require('jsonwebtoken')
+const db     = require('../config/db')
 
 // ── INSCRIPTION ──────────────────────────────────────
 const register = async (req, res) => {
@@ -13,16 +12,13 @@ const register = async (req, res) => {
 
   try {
     const [existing] = await db.query(
-      'SELECT id FROM users WHERE username = ?',
-      [username]
+      'SELECT id FROM users WHERE username = ?', [username]
     )
-
     if (existing.length > 0) {
       return res.status(400).json({ message: 'Ce username est déjà pris' })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-
     const [result] = await db.query(
       'INSERT INTO users (nom_complet, username, password) VALUES (?, ?, ?)',
       [nom_complet, username, hashedPassword]
@@ -32,7 +28,6 @@ const register = async (req, res) => {
       message: 'Inscription réussie',
       user: { id: result.insertId, nom_complet, username }
     })
-
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message })
   }
@@ -48,16 +43,13 @@ const login = async (req, res) => {
 
   try {
     const [users] = await db.query(
-      'SELECT * FROM users WHERE username = ?',
-      [username]
+      'SELECT * FROM users WHERE username = ?', [username]
     )
-
     if (users.length === 0) {
       return res.status(401).json({ message: 'Username ou mot de passe incorrect' })
     }
 
-    const user = users[0]
-
+    const user    = users[0]
     const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {
@@ -73,13 +65,8 @@ const login = async (req, res) => {
     res.status(200).json({
       message: 'Connexion réussie',
       token,
-      user: {
-        id: user.id,
-        nom_complet: user.nom_complet,
-        username: user.username
-      }
+      user: { id: user.id, nom_complet: user.nom_complet, username: user.username }
     })
-
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message })
   }

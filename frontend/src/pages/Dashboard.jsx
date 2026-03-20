@@ -1,121 +1,163 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { getArticles } from '../lib/api'
-import ArticleCard from '../components/articles/ArticleCard'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { getArticles, deleteArticle } from '../lib/api'
 
-const Dashboard = () => {
-  const { user } = useAuth()
-  const [articles, setArticles] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+export default function Dashboard() {
+  const { user, logout }   = useAuth()
+  const navigate           = useNavigate()
+  const [mesArticles,    setMesArticles]    = useState([])
+  const [articlesAmis,   setArticlesAmis]   = useState([])
+  const [erreur,         setErreur]         = useState('')
+  const [chargement,     setChargement]     = useState(true)
 
-  // Charger les articles au montage du composant
-  useEffect(() => {
-    fetchArticles()
-  }, [])
+  useEffect(() => { chargerArticles() }, [])
 
-  const fetchArticles = async () => {
+  const chargerArticles = async () => {
     try {
-      setLoading(true)
       const data = await getArticles()
-      setArticles(data)
+      setMesArticles(data.mesArticles   || [])
+      setArticlesAmis(data.articlesAmis || [])
     } catch (err) {
-      setError('Impossible de charger les articles. Veuillez réessayer.')
-      console.error(err)
+      setErreur('Erreur lors du chargement des articles')
     } finally {
-      setLoading(false)
+      setChargement(false)
     }
   }
 
-  // Séparer mes articles des articles des amis
-  const mesArticles = articles.filter(a => a.user_id === user?.id)
-  const articlesAmis = articles.filter(a => a.user_id !== user?.id)
-
-  // Callback après suppression d'un article
-  const handleDelete = (deletedId) => {
-    setArticles(prev => prev.filter(a => a.id !== deletedId))
+  const handleDelete = async (id) => {
+    if (!window.confirm('Supprimer cet article ?')) return
+    try {
+      await deleteArticle(id)
+      setMesArticles(mesArticles.filter(a => a.id !== id))
+    } catch (err) {
+      setErreur('Erreur lors de la suppression')
+    }
   }
 
-  if (loading) {
-    return (
-      <div className="container mt-5 text-center">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Chargement...</span>
-        </div>
-      </div>
-    )
-  }
+  const handleLogout = () => { logout(); navigate('/') }
 
   return (
-    <div className="container mt-4">
-      {/* En-tête */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3">Mon Dashboard</h1>
-        <Link to="/articles/new" className="btn btn-primary">
-          + Nouvel Article
-        </Link>
+    <div>
+      <nav className="navbar navbar-dark bg-dark px-4">
+        <span className="navbar-brand fw-bold">📝 Blog Personnel</span>
+        <div className="d-flex gap-2 align-items-center">
+          <span className="text-white me-2">👤 {user?.username}</span>
+          <Link to="/articles/new" className="btn btn-sm btn-primary">
+            ✍️ Nouvel Article
+          </Link>
+          <Link to="/amis" className="btn btn-sm btn-outline-light">
+            👥 Amis
+          </Link>
+          <button className="btn btn-sm btn-danger" onClick={handleLogout}>
+            🚪 Déconnexion
+          </button>
+        </div>
+      </nav>
+
+      <div className="container mt-4">
+        {erreur && <div className="alert alert-danger">{erreur}</div>}
+
+        {chargement ? (
+          <div className="text-center mt-5">
+            <div className="spinner-border text-primary" role="status"/>
+            <p className="mt-2">Chargement...</p>
+          </div>
+        ) : (
+          <>
+            {/* MES ARTICLES */}
+            <div className="mb-5">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h4 className="fw-bold">📋 Mes Articles ({mesArticles.length})</h4>
+                <Link to="/articles/new" className="btn btn-primary btn-sm">
+                  + Nouvel Article
+                </Link>
+              </div>
+
+              {mesArticles.length === 0 ? (
+                <div className="alert alert-info">
+                  Vous n'avez pas encore d'articles.{' '}
+                  <Link to="/articles/new">Créez votre premier article !</Link>
+                </div>
+              ) : (
+                <div className="row g-3">
+                  {mesArticles.map(article => (
+                    <div key={article.id} className="col-md-6 col-lg-4">
+                      <div className="card h-100 shadow-sm">
+                        <div className="card-body">
+                          <div className="d-flex gap-1 mb-2">
+                            <span className={`badge ${article.est_public ? 'bg-success' : 'bg-secondary'}`}>
+                              {article.est_public ? '🌍 Public' : '🔒 Privé'}
+                            </span>
+                            <span className={`badge ${article.commentaires_actifs ? 'bg-primary' : 'bg-warning text-dark'}`}>
+                              {article.commentaires_actifs ? '💬 ON' : '🔇 OFF'}
+                            </span>
+                          </div>
+                          <h6 className="card-title">{article.titre}</h6>
+                          <p className="card-text text-muted small">
+                            {article.contenu?.substring(0, 80)}...
+                          </p>
+                        </div>
+                        <div className="card-footer d-flex gap-2">
+                          <Link to={`/articles/${article.id}`}
+                            className="btn btn-sm btn-outline-primary flex-fill">
+                            👁️ Voir
+                          </Link>
+                          <Link to={`/articles/edit/${article.id}`}
+                            className="btn btn-sm btn-outline-secondary flex-fill">
+                            ✏️ Modifier
+                          </Link>
+                          <button
+                            className="btn btn-sm btn-outline-danger flex-fill"
+                            onClick={() => handleDelete(article.id)}>
+                            🗑️ Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ARTICLES AMIS */}
+            <div>
+              <h4 className="fw-bold mb-3">👥 Articles de mes Amis ({articlesAmis.length})</h4>
+
+              {articlesAmis.length === 0 ? (
+                <div className="alert alert-light border">
+                  Aucun article d'amis pour l'instant.{' '}
+                  <Link to="/amis">Ajoutez des amis !</Link>
+                </div>
+              ) : (
+                <div className="row g-3">
+                  {articlesAmis.map(article => (
+                    <div key={article.id} className="col-md-6 col-lg-4">
+                      <div className="card h-100 shadow-sm border-start border-primary border-3">
+                        <div className="card-body">
+                          <p className="text-muted small mb-1">
+                            👤 @{article.username}
+                          </p>
+                          <h6 className="card-title">{article.titre}</h6>
+                          <p className="card-text text-muted small">
+                            {article.contenu?.substring(0, 80)}...
+                          </p>
+                        </div>
+                        <div className="card-footer">
+                          <Link to={`/articles/${article.id}`}
+                            className="btn btn-sm btn-outline-primary w-100">
+                            👁️ Voir l'article
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
-
-      {error && (
-        <div className="alert alert-danger">{error}</div>
-      )}
-
-      {/* Section : Mes Articles */}
-      <section className="mb-5">
-        <h2 className="h5 border-bottom pb-2 mb-3">
-          Mes Articles
-          <span className="badge bg-secondary ms-2">{mesArticles.length}</span>
-        </h2>
-
-        {mesArticles.length === 0 ? (
-          <div className="text-muted fst-italic">
-            Vous n'avez pas encore d'articles.{' '}
-            <Link to="/articles/new">Créer votre premier article</Link>
-          </div>
-        ) : (
-          <div className="row g-3">
-            {mesArticles.map(article => (
-              <div className="col-md-6 col-lg-4" key={article.id}>
-                <ArticleCard
-                  article={article}
-                  onDelete={handleDelete}
-                  showActions={true}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Section : Articles des Amis */}
-      <section>
-        <h2 className="h5 border-bottom pb-2 mb-3">
-          Articles de mes Amis
-          <span className="badge bg-info ms-2">{articlesAmis.length}</span>
-        </h2>
-
-        {articlesAmis.length === 0 ? (
-          <div className="text-muted fst-italic">
-            Aucun article d'ami pour l'instant.{' '}
-            <Link to="/amis">Ajouter des amis</Link> pour voir leurs articles publics.
-          </div>
-        ) : (
-          <div className="row g-3">
-            {articlesAmis.map(article => (
-              <div className="col-md-6 col-lg-4" key={article.id}>
-                <ArticleCard
-                  article={article}
-                  onDelete={handleDelete}
-                  showActions={false}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   )
 }
-
-export default Dashboard
