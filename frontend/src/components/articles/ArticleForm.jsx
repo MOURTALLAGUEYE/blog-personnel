@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 
 export default function ArticleForm({ onSubmit, initialData }) {
   const [form, setForm] = useState({
-    titre             : '',
-    contenu           : '',
-    est_public        : true,
+    titre              : '',
+    contenu            : '',
+    est_public         : true,
     commentaires_actifs: true,
   })
 
@@ -60,7 +60,7 @@ export default function ArticleForm({ onSubmit, initialData }) {
           onChange={handleChange}
         />
         <label className="form-check-label" htmlFor="estPublic">
-          Article public (visible par vos amis)
+          🌍 Article public (visible par vos amis)
         </label>
       </div>
 
@@ -74,12 +74,12 @@ export default function ArticleForm({ onSubmit, initialData }) {
           onChange={handleChange}
         />
         <label className="form-check-label" htmlFor="commActifs">
-          Autoriser les commentaires
+          💬 Autoriser les commentaires
         </label>
       </div>
 
       <button type="submit" className="btn btn-primary w-100">
-        Enregistrer l'article
+        💾 Enregistrer l'article
       </button>
     </form>
   )

@@ -3,19 +3,19 @@ import { useAuth } from '../../context/AuthContext'
 import * as api from '../../lib/api'
 
 export default function CommentSection({ articleId, comments, setComments }) {
-  const { user } = useAuth()
+  const { user }  = useAuth()
   const [contenu, setContenu] = useState('')
-  const [erreur, setErreur]   = useState('')
+  const [erreur,  setErreur]  = useState('')
 
   const handleAdd = async (e) => {
     e.preventDefault()
     setErreur('')
     try {
-      const res = await api.addComment(articleId, { contenu })
-      setComments([...comments, res.data.comment])
+      const res = await api.addComment(articleId, contenu)
+      setComments([...comments, res.comment])
       setContenu('')
     } catch (err) {
-      setErreur(err.response?.data?.message || 'Erreur')
+      setErreur(err.response?.data?.message || 'Erreur ajout commentaire')
     }
   }
 
@@ -30,7 +30,7 @@ export default function CommentSection({ articleId, comments, setComments }) {
 
   return (
     <div className="mt-4">
-      <h5>Commentaires ({comments.length})</h5>
+      <h5>💬 Commentaires ({comments.length})</h5>
       <hr />
 
       {comments.length === 0 && (
@@ -40,19 +40,18 @@ export default function CommentSection({ articleId, comments, setComments }) {
       {comments.map(comment => (
         <div key={comment.id} className="card mb-2">
           <div className="card-body py-2">
-            <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-between align-items-center">
               <strong>{comment.nom_complet}</strong>
               <small className="text-muted">
                 {new Date(comment.created_at).toLocaleDateString()}
               </small>
             </div>
-            <p className="mb-1">{comment.contenu}</p>
+            <p className="mb-1 mt-1">{comment.contenu}</p>
             {user?.id === comment.user_id && (
               <button
                 onClick={() => handleDelete(comment.id)}
-                className="btn btn-outline-danger btn-sm"
-              >
-                Supprimer
+                className="btn btn-outline-danger btn-sm">
+                🗑️ Supprimer
               </button>
             )}
           </div>
@@ -73,7 +72,7 @@ export default function CommentSection({ articleId, comments, setComments }) {
           />
         </div>
         <button type="submit" className="btn btn-primary btn-sm">
-          Publier le commentaire
+          💬 Publier le commentaire
         </button>
       </form>
     </div>
