@@ -1,195 +1,184 @@
-const db = require('../config/db');
+const db = require('../config/db')
 
-// ─── RECHERCHER UN UTILISATEUR PAR USERNAME ─────────────────────────────────
+// ─── RECHERCHER UN UTILISATEUR ───────────────────────
 const searchUsers = async (req, res) => {
   try {
-    const { username } = req.query;
+    const { username } = req.query
     if (!username) {
-      return res.status(400).json({ message: 'Paramètre username requis' });
+      return res.status(400).json({ message: 'Paramètre username requis' })
     }
 
-    // Exclure l'utilisateur connecté des résultats
     const [users] = await db.query(
-      'SELECT id, nom_complet, username FROM users WHERE username LIKE ? AND id != ?',
-      [`%${username}%`, req.userId]
-    );
+      `SELECT id, nom_complet, nom_utilisateur AS username
+       FROM utilisateurs
+       WHERE nom_utilisateur LIKE ? AND id != ?`,
+      [`%${username}%`, req.user.id]
+    )
 
-    res.json(users);
+    res.json(users)
   } catch (error) {
-    console.error('searchUsers error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('searchUsers error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── LISTE DES AMIS CONFIRMÉS ───────────────────────────────────────────────
+// ─── LISTE DES AMIS CONFIRMÉS ────────────────────────
 const getFriends = async (req, res) => {
   try {
     const [friends] = await db.query(
-      `SELECT 
+      `SELECT
          f.id AS friendship_id,
          f.statut,
-         CASE 
-           WHEN f.demandeur_id = ? THEN u2.id
-           ELSE u1.id
-         END AS ami_id,
-         CASE 
-           WHEN f.demandeur_id = ? THEN u2.nom_complet
-           ELSE u1.nom_complet
-         END AS nom_complet,
-         CASE 
-           WHEN f.demandeur_id = ? THEN u2.username
-           ELSE u1.username
-         END AS username
-       FROM friends f
-       JOIN users u1 ON f.demandeur_id = u1.id
-       JOIN users u2 ON f.receveur_id = u2.id
-       WHERE (f.demandeur_id = ? OR f.receveur_id = ?) AND f.statut = 'accepte'`,
-      [req.userId, req.userId, req.userId, req.userId, req.userId]
-    );
+         CASE WHEN f.demandeur_id = ? THEN u2.id       ELSE u1.id       END AS ami_id,
+         CASE WHEN f.demandeur_id = ? THEN u2.nom_complet ELSE u1.nom_complet END AS nom_complet,
+         CASE WHEN f.demandeur_id = ? THEN u2.nom_utilisateur ELSE u1.nom_utilisateur END AS username
+       FROM amis f
+       JOIN utilisateurs u1 ON f.demandeur_id = u1.id
+       JOIN utilisateurs u2 ON f.receveur_id  = u2.id
+       WHERE (f.demandeur_id = ? OR f.receveur_id = ?)
+         AND f.statut = 'accepter'`,
+      [req.user.id, req.user.id, req.user.id, req.user.id, req.user.id]
+    )
 
-    res.json(friends);
+    res.json(friends)
   } catch (error) {
-    console.error('getFriends error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('getFriends error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── DEMANDES D'AMIS REÇUES EN ATTENTE ─────────────────────────────────────
+// ─── DEMANDES REÇUES EN ATTENTE ──────────────────────
 const getRequests = async (req, res) => {
   try {
     const [requests] = await db.query(
-      `SELECT 
+      `SELECT
          f.id AS friendship_id,
          u.id AS demandeur_id,
          u.nom_complet,
-         u.username
-       FROM friends f
-       JOIN users u ON f.demandeur_id = u.id
+         u.nom_utilisateur AS username
+       FROM amis f
+       JOIN utilisateurs u ON f.demandeur_id = u.id
        WHERE f.receveur_id = ? AND f.statut = 'en_attente'`,
-      [req.userId]
-    );
+      [req.user.id]
+    )
 
-    res.json(requests);
+    res.json(requests)
   } catch (error) {
-    console.error('getRequests error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('getRequests error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── ENVOYER UNE DEMANDE D'AMI ──────────────────────────────────────────────
+// ─── ENVOYER UNE DEMANDE D'AMI ───────────────────────
 const sendRequest = async (req, res) => {
   try {
-    const { receveur_id } = req.body;
+    const { receveur_id } = req.body
 
     if (!receveur_id) {
-      return res.status(400).json({ message: 'receveur_id requis' });
+      return res.status(400).json({ message: 'receveur_id requis' })
     }
 
-    if (receveur_id === req.userId) {
-      return res.status(400).json({ message: 'Vous ne pouvez pas vous ajouter vous-même' });
+    if (receveur_id === req.user.id) {
+      return res.status(400).json({ message: 'Vous ne pouvez pas vous ajouter vous-même' })
     }
 
-    // Vérifier si une relation existe déjà
     const [existing] = await db.query(
-      `SELECT id FROM friends 
-       WHERE (demandeur_id = ? AND receveur_id = ?) 
+      `SELECT id FROM amis
+       WHERE (demandeur_id = ? AND receveur_id = ?)
           OR (demandeur_id = ? AND receveur_id = ?)`,
-      [req.userId, receveur_id, receveur_id, req.userId]
-    );
+      [req.user.id, receveur_id, receveur_id, req.user.id]
+    )
 
     if (existing.length > 0) {
-      return res.status(400).json({ message: 'Une relation existe déjà avec cet utilisateur' });
+      return res.status(400).json({ message: 'Une relation existe déjà avec cet utilisateur' })
     }
 
     await db.query(
-      "INSERT INTO friends (demandeur_id, receveur_id, statut) VALUES (?, ?, 'en_attente')",
-      [req.userId, receveur_id]
-    );
+      "INSERT INTO amis (demandeur_id, receveur_id, statut) VALUES (?, ?, 'en_attente')",
+      [req.user.id, receveur_id]
+    )
 
-    res.status(201).json({ message: 'Demande d\'ami envoyée avec succès' });
+    res.status(201).json({ message: "Demande d'ami envoyée avec succès" })
   } catch (error) {
-    console.error('sendRequest error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('sendRequest error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── CONFIRMER UNE DEMANDE D'AMI ────────────────────────────────────────────
+// ─── CONFIRMER UNE DEMANDE D'AMI ─────────────────────
 const confirmRequest = async (req, res) => {
   try {
-    const { id } = req.params; // friendship_id
+    const { id } = req.params
 
-    // Vérifier que c'est bien l'utilisateur receveur qui confirme
     const [friendship] = await db.query(
-      "SELECT * FROM friends WHERE id = ? AND receveur_id = ? AND statut = 'en_attente'",
-      [id, req.userId]
-    );
+      "SELECT * FROM amis WHERE id = ? AND receveur_id = ? AND statut = 'en_attente'",
+      [id, req.user.id]
+    )
 
     if (friendship.length === 0) {
-      return res.status(404).json({ message: 'Demande introuvable ou non autorisée' });
+      return res.status(404).json({ message: 'Demande introuvable ou non autorisée' })
     }
 
     await db.query(
-      "UPDATE friends SET statut = 'accepte' WHERE id = ?",
+      "UPDATE amis SET statut = 'accepter' WHERE id = ?",
       [id]
-    );
+    )
 
-    res.json({ message: 'Demande d\'ami confirmée' });
+    res.json({ message: "Demande d'ami confirmée" })
   } catch (error) {
-    console.error('confirmRequest error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('confirmRequest error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── SUPPRIMER UN AMI ───────────────────────────────────────────────────────
+// ─── SUPPRIMER UN AMI ────────────────────────────────
 const deleteFriend = async (req, res) => {
   try {
-    const { id } = req.params; // friendship_id
+    const { id } = req.params
 
-    // Vérifier que l'utilisateur connecté fait partie de cette relation
     const [friendship] = await db.query(
-      'SELECT * FROM friends WHERE id = ? AND (demandeur_id = ? OR receveur_id = ?)',
-      [id, req.userId, req.userId]
-    );
+      'SELECT * FROM amis WHERE id = ? AND (demandeur_id = ? OR receveur_id = ?)',
+      [id, req.user.id, req.user.id]
+    )
 
     if (friendship.length === 0) {
-      return res.status(404).json({ message: 'Relation introuvable ou non autorisée' });
+      return res.status(404).json({ message: 'Relation introuvable ou non autorisée' })
     }
 
-    await db.query('DELETE FROM friends WHERE id = ?', [id]);
+    await db.query('DELETE FROM amis WHERE id = ?', [id])
 
-    res.json({ message: 'Ami supprimé avec succès' });
+    res.json({ message: 'Ami supprimé avec succès' })
   } catch (error) {
-    console.error('deleteFriend error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('deleteFriend error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
-// ─── BLOQUER UN UTILISATEUR ─────────────────────────────────────────────────
+// ─── BLOQUER UN UTILISATEUR ──────────────────────────
 const blockFriend = async (req, res) => {
   try {
-    const { id } = req.params; // friendship_id
+    const { id } = req.params
 
-    // Vérifier que l'utilisateur connecté fait partie de cette relation
     const [friendship] = await db.query(
-      'SELECT * FROM friends WHERE id = ? AND (demandeur_id = ? OR receveur_id = ?)',
-      [id, req.userId, req.userId]
-    );
+      'SELECT * FROM amis WHERE id = ? AND (demandeur_id = ? OR receveur_id = ?)',
+      [id, req.user.id, req.user.id]
+    )
 
     if (friendship.length === 0) {
-      return res.status(404).json({ message: 'Relation introuvable ou non autorisée' });
+      return res.status(404).json({ message: 'Relation introuvable ou non autorisée' })
     }
 
     await db.query(
-      "UPDATE friends SET statut = 'bloque' WHERE id = ?",
+      "UPDATE amis SET statut = 'bloquer' WHERE id = ?",
       [id]
-    );
+    )
 
-    res.json({ message: 'Utilisateur bloqué. Ses articles n\'apparaîtront plus sur votre dashboard.' });
+    res.json({ message: "Utilisateur bloqué" })
   } catch (error) {
-    console.error('blockFriend error:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('blockFriend error:', error.message)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
-};
+}
 
 module.exports = {
   searchUsers,
@@ -199,4 +188,4 @@ module.exports = {
   confirmRequest,
   deleteFriend,
   blockFriend
-};
+}

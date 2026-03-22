@@ -9,7 +9,9 @@ export default function Register() {
   const navigate            = useNavigate()
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    setForm({ 
+      ...form,
+       [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
