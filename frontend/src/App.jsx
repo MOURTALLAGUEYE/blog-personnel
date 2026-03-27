@@ -7,7 +7,7 @@ import Dashboard       from './pages/Dashboard'
 import NouvelArticle   from './pages/NouvelArticle'
 import DetailArticle   from './pages/DetailArticle'
 import ModifierArticle from './pages/ModifierArticle'
-import Amis from './pages/Amis'
+import Amis            from './pages/Amis'
 
 function PrivateRoute({ children }) {
   const { token } = useAuth()
@@ -21,11 +21,11 @@ function AppRoutes() {
         <Route path="/"                  element={<Login />} />
         <Route path="/register"          element={<Register />} />
         <Route path="/dashboard"         element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/amis"              element={<PrivateRoute><Amis /></PrivateRoute>} />
         <Route path="/articles/new"      element={<PrivateRoute><NouvelArticle /></PrivateRoute>} />
         <Route path="/articles/edit/:id" element={<PrivateRoute><ModifierArticle /></PrivateRoute>} />
         <Route path="/articles/:id"      element={<PrivateRoute><DetailArticle /></PrivateRoute>} />
         <Route path="*"                  element={<Navigate to="/" />} />
-        <Route path="/amis" element={<PrivateRoute><Amis /></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   )

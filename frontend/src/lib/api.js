@@ -4,12 +4,9 @@ const api = axios.create({
   baseURL: 'http://localhost:5000/api'
 })
 
-// Injecte le token JWT automatiquement
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
@@ -61,12 +58,13 @@ export const deleteComment = async (commentId) => {
   return res.data
 }
 
-// ─── AMIS ─────────────────────────────────────────────
+// ─── UTILISATEURS ─────────────────────────────────────
 export const searchUsers = async (username) => {
   const res = await api.get(`/users/search?username=${encodeURIComponent(username)}`)
   return res.data
 }
 
+// ─── AMIS ─────────────────────────────────────────────
 export const getFriends = async () => {
   const res = await api.get('/friends')
   return res.data
@@ -74,6 +72,11 @@ export const getFriends = async () => {
 
 export const getFriendRequests = async () => {
   const res = await api.get('/friends/requests')
+  return res.data
+}
+
+export const getBlockedUsers = async () => {
+  const res = await api.get('/friends/blocked')
   return res.data
 }
 
