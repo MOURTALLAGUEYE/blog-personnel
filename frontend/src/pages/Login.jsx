@@ -30,7 +30,7 @@ export default function Login() {
     <div className="auth-bg">
       <div className="auth-card">
         <div className="auth-logo">✍️</div>
-        <h1 className="auth-title">Bon retour !</h1>
+        <h1 className="auth-title">Ravi de vous revoir !</h1>
         <p className="auth-subtitle">Connectez-vous à votre blog personnel</p>
 
         {erreur && <div className="alert-glass mb-4">⚠️ {erreur}</div>}
@@ -62,7 +62,7 @@ export default function Login() {
             type="submit"
             className="btn btn-gradient w-100 py-3 mb-4"
             disabled={loading}>
-            {loading ? '⏳ Connexion...' : '🚀 Se connecter'}
+            {loading ? '⏳ Connexion...' : '🚀 Connect'}
           </button>
         </form>
 
