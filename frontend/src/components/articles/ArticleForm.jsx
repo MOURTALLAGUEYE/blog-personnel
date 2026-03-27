@@ -2,47 +2,36 @@ import { useState, useEffect } from 'react'
 
 export default function ArticleForm({ onSubmit, initialData }) {
   const [form, setForm] = useState({
-    titre              : '',
-    contenu            : '',
-    est_public         : true,
-    commentaires_actifs: true,
+    titre: '', contenu: '', est_public: true, commentaires_actifs: true,
   })
 
-  useEffect(() => {
-    if (initialData) setForm(initialData)
-  }, [initialData])
+  useEffect(() => { if (initialData) setForm(initialData) }, [initialData])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSubmit(form)
-  }
-
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label className="form-label fw-bold">Titre</label>
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
+      <div className="mb-4">
+        <label className="glass-label">Titre de l'article</label>
         <input
-          type="text"
-          name="titre"
-          className="form-control"
+          type="text" name="titre"
+          className="glass-input form-control"
           value={form.titre}
           onChange={handleChange}
-          placeholder="Titre de l'article"
+          placeholder="Un titre accrocheur..."
           required
         />
       </div>
 
-      <div className="mb-3">
-        <label className="form-label fw-bold">Contenu</label>
+      <div className="mb-4">
+        <label className="glass-label">Contenu</label>
         <textarea
           name="contenu"
-          className="form-control"
-          rows={6}
+          className="glass-input form-control"
+          rows={7}
           value={form.contenu}
           onChange={handleChange}
           placeholder="Écrivez votre article ici..."
@@ -50,37 +39,39 @@ export default function ArticleForm({ onSubmit, initialData }) {
         />
       </div>
 
-      <div className="mb-3 form-check">
+      <label className="glass-check">
         <input
-          type="checkbox"
-          name="est_public"
-          className="form-check-input"
-          id="estPublic"
+          type="checkbox" name="est_public"
           checked={form.est_public}
           onChange={handleChange}
         />
-        <label className="form-check-label" htmlFor="estPublic">
-          🌍 Article public (visible par vos amis)
-        </label>
-      </div>
+        <div>
+          <div className="glass-check-label">🌍 Article public</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+            Visible par vos amis confirmés
+          </div>
+        </div>
+      </label>
 
-      <div className="mb-4 form-check">
+      <label className="glass-check">
         <input
-          type="checkbox"
-          name="commentaires_actifs"
-          className="form-check-input"
-          id="commActifs"
+          type="checkbox" name="commentaires_actifs"
           checked={form.commentaires_actifs}
           onChange={handleChange}
         />
-        <label className="form-check-label" htmlFor="commActifs">
-          💬 Autoriser les commentaires
-        </label>
-      </div>
+        <div>
+          <div className="glass-check-label">💬 Autoriser les commentaires</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+            Les lecteurs pourront commenter
+          </div>
+        </div>
+      </label>
 
-      <button type="submit" className="btn btn-primary w-100">
-        💾 Enregistrer l'article
-      </button>
+      <div className="mt-4">
+        <button type="submit" className="btn btn-gradient w-100 py-3">
+          💾 Enregistrer l'article
+        </button>
+      </div>
     </form>
   )
 }

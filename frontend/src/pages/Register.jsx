@@ -1,95 +1,95 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import * as api from '../lib/api'
+import { register as apiRegister } from '../lib/api'
 
 export default function Register() {
-  const [form, setForm]     = useState({ nom_complet: '', username: '', password: '' })
-  const [erreur, setErreur] = useState('')
-  const [succes, setSucces] = useState('')
-  const navigate            = useNavigate()
+  const [form,    setForm]    = useState({ nom_complet: '', username: '', password: '' })
+  const [erreur,  setErreur]  = useState('')
+  const [succes,  setSucces]  = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate              = useNavigate()
 
-  const handleChange = (e) => {
-    setForm({ 
-      ...form,
-       [e.target.name]: e.target.value })
-  }
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErreur('')
     setSucces('')
+    setLoading(true)
     try {
-      await api.register(form)
-      setSucces('Inscription réussie ! Connectez-vous.')
+      await apiRegister(form)
+      setSucces('Inscription réussie ! Redirection...')
       setTimeout(() => navigate('/'), 2000)
     } catch (err) {
       setErreur(err.response?.data?.message || 'Erreur inscription')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-5">
-          <div className="card shadow">
-            <div className="card-body p-4">
-              <h2 className="card-title text-center mb-4">Inscription</h2>
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-logo">🌟</div>
+        <h1 className="auth-title">Créer un compte</h1>
+        <p className="auth-subtitle">Rejoignez la communauté Blog Personnel</p>
 
-              {erreur && <div className="alert alert-danger">{erreur}</div>}
-              {succes && <div className="alert alert-success">{succes}</div>}
+        {erreur  && <div className="alert-glass mb-4">⚠️ {erreur}</div>}
+        {succes  && <div className="alert-glass-success mb-4">✅ {succes}</div>}
 
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Nom complet</label>
-                  <input
-                    type="text"
-                    name="nom_complet"
-                    className="form-control"
-                    value={form.nom_complet}
-                    onChange={handleChange}
-                    placeholder="Votre nom complet"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Nom d'utilisateur</label>
-                  <input
-                    type="text"
-                    name="username"
-                    className="form-control"
-                    value={form.username}
-                    onChange={handleChange}
-                    placeholder="Choisissez un username"
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Mot de passe</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Choisissez un mot de passe"
-                    required
-                  />
-                </div>
-
-                <button type="submit" className="btn btn-success w-100">
-                  S'inscrire
-                </button>
-              </form>
-
-              <p className="text-center mt-3">
-                Déjà un compte ?{' '}
-                <Link to="/">Connect</Link>
-              </p>
-            </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="glass-label">Nom complet</label>
+            <input
+              type="text"
+              name="nom_complet"
+              className="glass-input form-control"
+              value={form.nom_complet}
+              onChange={handleChange}
+              placeholder="Votre nom complet"
+              required
+            />
           </div>
-        </div>
+          <div className="mb-4">
+            <label className="glass-label">Nom d'utilisateur</label>
+            <input
+              type="text"
+              name="username"
+              className="glass-input form-control"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Choisissez un username unique"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="glass-label">Mot de passe</label>
+            <input
+              type="password"
+              name="password"
+              className="glass-input form-control"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Choisissez un mot de passe"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="btn btn-gradient w-100 py-3 mb-4"
+            disabled={loading}>
+            {loading ? '⏳ Création...' : '✨ Créer mon compte'}
+          </button>
+        </form>
+
+        <div className="glass-divider"/>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+          Déjà un compte ?{' '}
+          <Link to="/"
+            style={{ color: 'var(--primary-light)', fontWeight: 600, textDecoration: 'none' }}>
+            Connect →
+          </Link>
+        </p>
       </div>
     </div>
   )

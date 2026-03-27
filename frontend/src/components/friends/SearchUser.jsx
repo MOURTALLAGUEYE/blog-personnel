@@ -1,94 +1,82 @@
 import { useState } from 'react'
 import { searchUsers, sendFriendRequest } from '../../lib/api'
 
-const SearchUser = ({ onRequestSent }) => {
-  const [query, setQuery] = useState('')
+export default function SearchUser({ onRequestSent }) {
+  const [query,   setQuery]   = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [sentRequests, setSentRequests] = useState(new Set()) // IDs où demande déjà envoyée
+  const [erreur,  setErreur]  = useState('')
+  const [sent,    setSent]    = useState([])
 
   const handleSearch = async (e) => {
     e.preventDefault()
     if (!query.trim()) return
-
+    setErreur(''); setLoading(true)
     try {
-      setLoading(true)
-      setError('')
       const data = await searchUsers(query.trim())
-      setResults(data)
-      if (data.length === 0) {
-        setError('Aucun utilisateur trouvé pour ce username.')
-      }
-    } catch (err) {
-      setError('Erreur lors de la recherche.')
-    } finally {
-      setLoading(false)
-    }
+      setResults(data || [])
+      if (!data?.length) setErreur('Aucun utilisateur trouvé')
+    } catch { setErreur('Erreur de recherche') }
+    finally { setLoading(false) }
   }
 
-  const handleSendRequest = async (userId) => {
+  const handleSend = async (userId) => {
     try {
       await sendFriendRequest(userId)
-      setSentRequests(prev => new Set([...prev, userId]))
+      setSent(prev => [...prev, userId])
       if (onRequestSent) onRequestSent()
     } catch (err) {
-      const msg = err.response?.data?.message || 'Erreur lors de l\'envoi de la demande.'
-      setError(msg)
+      setErreur(err.response?.data?.message || 'Erreur envoi')
     }
   }
 
   return (
     <div>
-      {/* Formulaire de recherche */}
-      <form onSubmit={handleSearch} className="d-flex gap-2 mb-4">
+      <form onSubmit={handleSearch} className="d-flex gap-3 mb-4">
         <input
           type="text"
-          className="form-control"
-          placeholder="Rechercher par username..."
+          className="glass-input form-control"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          placeholder="🔍 Rechercher par username..."
+          required
         />
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={loading || !query.trim()}
-        >
-          {loading ? (
-            <span className="spinner-border spinner-border-sm" role="status" />
-          ) : (
-            'Rechercher'
-          )}
+        <button type="submit" className="btn btn-gradient px-4" disabled={loading}>
+          {loading ? '⏳' : '🔍 Chercher'}
         </button>
       </form>
 
-      {/* Message d'erreur / info */}
-      {error && (
-        <div className="alert alert-warning py-2">{error}</div>
-      )}
+      {erreur && <div className="alert-glass mb-3">{erreur}</div>}
 
-      {/* Résultats */}
       {results.length > 0 && (
         <div className="row g-3">
-          {results.map(user => (
-            <div className="col-md-6 col-lg-4" key={user.id}>
-              <div className="card shadow-sm">
-                <div className="card-body d-flex align-items-center justify-content-between">
-                  <div>
-                    <strong>{user.nom_complet}</strong>
-                    <div className="text-muted small">@{user.username}</div>
-                  </div>
-                  {sentRequests.has(user.id) ? (
-                    <span className="badge bg-success">Demande envoyée</span>
-                  ) : (
-                    <button
-                      className="btn btn-outline-primary btn-sm"
-                      onClick={() => handleSendRequest(user.id)}
-                    >
-                      Ajouter
-                    </button>
-                  )}
+          {results.map(u => (
+            <div key={u.id} className="col-md-6 col-lg-4">
+              <div className="friend-card">
+                <div className="friend-avatar">
+                  {u.nom_complet?.charAt(0).toUpperCase()}
                 </div>
+                <h6 style={{ color: 'white', fontWeight: 700, marginBottom: 4 }}>
+                  {u.nom_complet}
+                </h6>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
+                  @{u.username}
+                </p>
+                {sent.includes(u.id) ? (
+                  <div style={{
+                    background: 'rgba(16,185,129,0.15)',
+                    border: '1px solid rgba(16,185,129,0.3)',
+                    borderRadius: 10, padding: '8px',
+                    color: '#6ee7b7', fontSize: 13, fontWeight: 600, textAlign: 'center'
+                  }}>
+                    ✅ Demande envoyée
+                  </div>
+                ) : (
+                  <button className="btn btn-gradient btn-sm w-100"
+                    onClick={() => handleSend(u.id)}>
+                    ➕ Ajouter
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -97,5 +85,3 @@ const SearchUser = ({ onRequestSent }) => {
     </div>
   )
 }
-
-export default SearchUser
